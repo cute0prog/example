@@ -1,0 +1,145 @@
+---
+title: "실전 종합 과제: 도시 대기질 데이터 분석"
+author: "환경공학 학습자"
+date: "today"
+format: html
+editor: visual
+---
+
+## 과제 목표
+
+벡터 연산, 주요 함수, 그리고 데이터 분석의 핵심인 논리적 인덱싱을 활용하여, 가상의 주간 대기질 데이터를 분석하고 오염 현황을 보고하는 능력을 기릅니다.
+
+---
+
+## 시나리오
+
+당신은 A도시의 대기질 관제 센터 연구원입니다. 도시 내 3개의 주요 측정소에서 일주일간 측정한 **미세먼지(PM10) 농도** 데이터가 주어졌습니다. 우리나라의 PM10 환경 기준은 **일평균 100 ㎍/㎥** 입니다.
+
+측정된 데이터는 다음과 같습니다.
+
+-   **측정 요일:** 월, 화, 수, 목, 금, 토, 일
+-   **측정소 A (공업단지):** 95, 110, 125, 85, 70, 130, 140
+-   **측정소 B (도심상업지):** 70, 85, 90, 75, 65, 95, 110
+-   **측정소 C (주거/녹지):** 45, 55, 60, 40, 35, 50, 65
+
+---
+
+## 문제
+
+### **[문제 1] 데이터 벡터 생성**
+
+위 시나리오의 데이터를 바탕으로, 다음 변수들을 각각 생성하세요.
+
+1.  `days`: 측정 요일을 담는 **문자형** 벡터
+2.  `station_a`, `station_b`, `station_c`: 각 측정소의 PM10 농도를 담는 **숫자형** 벡터
+3.  `standard`: PM10 환경 기준치(100)를 담는 **숫자형** 변수
+
+<hr>
+
+### **[문제 2] 일평균 도시 오염도 계산**
+
+벡터 간의 산술 연산을 이용하여, 세 측정소의 **일일 평균 PM10 농도**를 계산하고 `daily_avg` 라는 새로운 벡터에 저장하세요.
+(힌트: `(A + B + C) / 3`)
+
+생성된 `daily_avg` 벡터의 각 값에 `days` 벡터의 요일 이름을 매칭하여 이름표를 붙여주세요. (`names()` 함수 사용)
+
+<hr>
+
+### **[문제 3] 핵심 통계량 분석**
+
+1.  공업단지(`station_a`)의 일주일간 **최고 PM10 농도**는 얼마였나요? (`max()` 함수)
+2.  그 최고 농도가 관측된 날은 **무슨 요일**이었나요? (`which.max()`와 인덱싱 활용)
+3.  일주일 중 도시 전체의 일평균 오염도(`daily_avg`)가 환경 기준(`standard`)을 **초과한 날은 총 며칠**이었나요? (`sum()`과 논리 연산자 활용)
+
+<hr>
+
+### **[문제 4] 데이터 필터링 및 리스트 활용**
+
+1.  지금까지 만든 모든 벡터(`days`, `station_a` 등)를 하나의 `list` 자료구조에 담아 `data_list` 라는 변수로 만드세요.
+2.  `data_list`를 사용하여, **"측정소 C는 '좋음'(50 이하)이면서, 동시에 측정소 A는 '나쁨'(80 초과)이었던 요일"**을 모두 찾아내어 출력하세요. (논리 연산자 `&` 활용)
+
+---
+---
+
+## 정답 및 해설
+
+### **[정답 1] 데이터 벡터 생성**
+
+```{r}
+#| echo: false
+#| results: 'asis'
+
+days <- c('월', '화', '수', '목', '금', '토', '일')
+station_a <- c(95, 110, 125, 85, 70, 130, 140)
+station_b <- c(70, 85, 90, 75, 65, 95, 110)
+station_c <- c(45, 55, 60, 40, 35, 50, 65)
+standard <- 100
+
+cat("**days 벡터:**\n")
+print(days)
+cat("\n**station_a 벡터:**\n")
+print(station_a)
+
+```
+### ** [정답 2] 일평균 도시 오염도 계산**
+
+```{r}
+#| echo: false
+
+# 벡터간의 원소 단위 연산
+daily_avg <- (station_a + station_b + station_c) / 3
+names(daily_avg) <- days
+
+print(daily_avg)
+
+```
+
+### **[정답 3] 핵심 통계량 분석**
+
+```{r}
+#| echo: false
+#| message: false
+library(glue)
+
+# 1. 측정소 A의 최고 농도
+max_a <- max(station_a)
+
+# 2. 최고 농도가 관측된 요일
+top_day_index <- which.max(station_a)
+top_day <- days[top_day_index]
+
+# 3. 기준 초과일 계산
+exceeded_days_count <- sum(daily_avg > standard)
+
+cat(glue("
+1. 측정소 A의 최고 PM10 농도: {max_a} ㎍/㎥
+2. 최고 농도 관측 요일: {top_day}요일
+3. 도시 평균 기준 초과일: {exceeded_days_count}일
+"))
+
+```
+
+### **[정답 4] 데이터 필터링 및 리스트 활용**
+
+```{r}
+#| echo: false
+
+# 1. 모든 데이터를 리스트로 묶기
+data_list <- list(
+  days = days,
+  station_a = station_a,
+  station_b = station_b,
+  station_c = station_c,
+  standard = standard,
+  daily_avg = daily_avg
+)
+
+# 2. 여러 조건으로 필터링
+# data_list$를 사용하여 리스트 안의 벡터에 접근합니다.
+special_days <- data_list$days[data_list$station_c <= 50 & data_list$station_a > 80]
+
+cat("측정소 C는 '좋음'이면서 측정소 A는 '나쁨'이었던 요일:\n")
+print(special_days)
+
+```

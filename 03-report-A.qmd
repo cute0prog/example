@@ -1,0 +1,144 @@
+---
+title: "실전 종합 과제: 하천 수질 오염원 분석"
+author: "작성자명"
+date: "today"
+format: html
+editor: visual
+---
+
+## 과제 목표
+
+R의 기본인 **변수, 벡터, 인덱싱, 함수**를 활용하여 가상의 수질 데이터를 분석하고, 기준치 초과 지점을 식별하여 보고하는 능력을 기릅니다.
+
+---
+
+## 시나리오
+
+당신은 환경부 소속 연구원으로, 특정 산업단지 인근 하천의 **5개 지점(Site)**에서 중금속인 **납(Lead, Pb)**의 농도를 측정했습니다. 하천 수질 기준상 납의 농도는 **15 µg/L**를 초과해서는 안됩니다.
+
+측정된 데이터는 다음과 같습니다.
+
+-   **측정 지점:** `Site-01` (상류), `Site-02`, `Site-03` (산단 인근), `Site-04`, `Site-05` (하류)
+-   **측정된 납 농도 (µg/L):** 4.5, 12.8, 25.2, 18.9, 8.1
+
+---
+
+## 문제
+
+### **[문제 1] 데이터 벡터 생성**
+
+위 시나리오의 데이터를 바탕으로, 다음 세 개의 변수를 각각 생성하세요.
+
+1.  `sampling_sites`: 측정 지점 이름을 담는 **문자형** 벡터
+2.  `pb_levels`: 측정된 납 농도 값을 담는 **숫자형** 벡터
+3.  `limit`: 법적 기준치(15)를 담는 **숫자형** 변수
+
+---
+
+### 답1
+```{r}
+#| echo: false # 이 코드 자체는 최종 문서에 보이지 않도록 함
+sampling_sites <- c('Site-01', 'Site-02', 'Site-03', 'Site-04', 'Site-05')
+pb_levels <- c(4.5, 12.8, 25.2, 18.9, 8.1)
+limit <- 15
+
+# 생성된 변수 확인
+sampling_sites #측정지점
+pb_levels #측정된 납 농도값
+limit #법적 기준치
+```
+
+### **[문제 2] 기초 통계 분석**
+
+생성한 `pb_levels` 벡터를 이용하여 다음 값들을 계산하고 출력하세요.
+
+1.  5개 지점의 **평균** 납 농도 (`mean()` 함수)
+2.  측정된 **최고** 납 농도 (`max()` 함수)
+3.  총 측정 지점의 개수 (`length()` 함수)
+
+---
+
+### 답2
+```{r}
+#| echo: false # 이 코드 자체는 최종 문서에 보이지 않도록 함
+avg_level <- mean(pb_levels)
+max_level <- max(pb_levels)
+site_count <- length(pb_levels)
+
+cat(glue::glue("
+- 평균 납 농도: {round(avg_level, 2)} µg/L
+- 최고 납 농도: {max_level} µg/L
+- 총 측정 지점 수: {site_count}개소
+"))
+
+```
+
+### **[문제 3] 오염원 탐색**
+
+1.  `pb_levels` 벡터의 각 농도 값에 `sampling_sites`의 지점 이름을 매칭하여 이름표를 붙여주세요. (`names()` 함수 사용)
+
+2.  납 농도가 가장 높게 측정된 **측정 지점의 이름**은 무엇인가요? (`which.max()` 함수와 인덱싱 활용)
+
+---
+
+### 답3
+```{r}
+#| echo: false # 이 코드 자체는 최종 문서에 보이지 않도록 함
+# 1. 벡터에 이름 붙이기
+names(pb_levels) <- sampling_sites
+print("이름이 붙은 농도 데이터:")
+pb_levels
+
+# 2. 최고 농도 지점 이름 찾기
+# which.max(pb_levels)는 가장 큰 값의 '위치(인덱스 번호)'를 반환합니다.
+top_site_index <- which.max(pb_levels) 
+top_site_name <- names(pb_levels)[top_site_index] # 해당 위치의 이름을 다시 찾습니다.
+
+cat(glue::glue("\n납 농도가 가장 높은 지점: {top_site_name}"))
+```
+
+### **[문제 4] 기준 초과 지점 보고**
+
+1.  법적 기준치(`limit`)를 초과한 측정 지점은 **어디인가요?** 그리고 그 지점들의 **농도는 얼마인가요?** (논리적 인덱싱 활용)
+
+
+### 답 4-1
+```{r}
+#| echo: false # 이 코드 자체는 최종 문서에 보이지 않도록 함
+#| message: false
+
+# 1. 기준치를 초과하는 지점과 농도 찾기
+# pb_levels > limit 는 각 원소가 기준치를 넘는지 여부를 TRUE/FALSE 벡터로 반환합니다.
+exceeded_sites <- pb_levels[pb_levels > limit] 
+
+print("기준치를 초과한 지점 및 농도:")
+exceeded_sites
+```
+
+2.  `glue` 패키지를 사용하여, 농도가 가장 높았던 지점에 대해 아래와 같은 형식의 경고 메시지를 생성하여 출력하세요.
+
+
+### 답 4-2
+```{r}
+#| echo: false # 이 코드 자체는 최종 문서에 보이지 않도록 함
+#| results: asis  # 결과를 '있는 그대로(as is)' 처리하라는 필수 옵션!
+
+# 2. glue를 사용하여 경고 메시지 생성
+library(glue)
+
+# 최고 오염 지점의 정보들을 변수로 가져오기
+top_site_name <- names(exceeded_sites)[1] # 위 결과의 첫번째 이름
+top_site_level <- exceeded_sites[1]      # 위 결과의 첫번째 값
+exceeded_amount <- top_site_level - limit
+
+# glue를 이용해 최종 보고서 생성
+#warning_message <- glue( "<span style='color: red; font-weight:bold;'>","[긴급] 오염 경보: {top_site_name} 지점에서 기준치({limit}µg/L)를 {round(exceeded_amount,1)}µg/L 초과한 {top_site_level}µg/L의 납이 검출되었습니다.")
+
+warning_message <- glue( "[긴급] 오염 경보: {top_site_name} 지점에서 기준치({limit}µg/L)를 {round(exceeded_amount,1)}µg/L 초과한 {top_site_level}µg/L의 납이 검출되었습니다.")
+
+cat(warning_message)
+```
+
+[**[긴급] 오염 경보: Site-03 지점에서 기준치(15µg/L)를 10.2µg/L 초과한 25.2µg/L의 납이 검출되었습니다.**]{style="color: red;"}
+
+The `echo: false` option disables the printing of code (only output is displayed).

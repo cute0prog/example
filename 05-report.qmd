@@ -1,0 +1,143 @@
+---
+title: "실전 종합 과제: 오염 부지 데이터 분석"
+author: "hjlim"
+date: "today"
+format: html
+editor: visual
+---
+
+## 과제 목표
+
+**매트릭스**와 **데이터프레임**의 차이를 이해하고, 각 자료구조에 맞는 인덱싱과 함수를 적용하여 실제 환경 데이터 분석 문제를 해결하는 능력을 기릅니다.
+
+---
+
+## 시나리오
+
+당신은 토양오염 복원 전문가입니다. 폐쇄된 공장 부지의 토양 오염도를 조사하기 위해, 부지를 **4x4 격자**로 나누고 각 구역 중앙에서 토양 샘플을 채취하여 **납(Pb) 농도(단위: mg/kg)**를 측정했습니다. 토양오염 우려기준상 납의 농도는 **200 mg/kg** 입니다.
+
+측정된 16개 지점의 데이터는 왼쪽 위부터 가로 방향으로 다음과 같습니다.
+
+-   **측정된 납 농도 (mg/kg):** 85, 90, 150, 120, 110, 180, **250**, 190, 130, **220**, **480**, 160, 90, 110, 140, 100
+
+또한, 오염이 심각해 보이는 4개 지점(`S-03`, `S-07`, `S-10`, `S-11`)에 대해서는 추가로 **토질 정보(Soil Type)**와 **지하수 오염 여부(GW_Contam)**를 조사했습니다.
+
+---
+
+## 문제
+
+### **[문제 1] 오염도 지도 매트릭스 생성**
+
+1.  16개 지점의 납 농도 데이터를 하나의 벡터 `pb_conc`에 저장하세요.
+2.  `matrix()` 함수를 사용하여, `pb_conc` 벡터를 `4행 4열`의 매트릭스 `contamination_map`으로 만드세요. (데이터는 행 우선으로 채워야 합니다.)
+3.  `rownames()`와 `colnames()`를 사용하여 매트릭스의 행과 열에 각각 `X1`~`X4`, `Y1`~`Y4` 라는 좌표 이름을 붙여주세요.
+
+<hr>
+
+### **[문제 2] 매트릭스 데이터 분석**
+
+1.  좌표 `[X3, Y3]` 지점의 납 농도는 얼마인가요? (매트릭스 인덱싱)
+2.  전체 부지에서 측정된 **최고 오염도(Hotspot)**는 얼마이며, 오염도가 **기준치(200)를 초과하는 지점은 총 몇 곳**인가요? (`max()`, `sum()` 활용)
+3.  `colMeans()` 함수를 사용하여, **Y축 방향(Y1~Y4) 각 라인의 평균 오염도**를 계산하세요. 어느 라인의 오염이 가장 심각한가요?
+
+<hr>
+
+### **[문제 3] 추가 정보 데이터프레임 생성**
+
+오염이 심각한 4개 지점의 추가 정보를 **데이터프레임**으로 만드세요.
+
+-   `site_id`: "S-03", "S-07", "S-10", "S-11"
+-   `pb_level`: 150, 250, 220, 480
+-   `soil_type`: "Silt", "Clay", "Clay", "Silt"
+-   `gw_contam`: FALSE, TRUE, TRUE, TRUE
+
+위 벡터들을 `data.frame()` 함수로 묶어 `hotspot_info` 라는 변수에 저장하세요. `str()` 함수로 구조를 확인해 보세요.
+
+<hr>
+
+### **[문제 4] 데이터프레임 분석 및 의사결정**
+
+1.  `$`를 사용해 `hotspot_info` 데이터프레임에서 **토질(soil_type) 정보**만 추출하세요. `table()` 함수로 토질의 종류별 빈도를 확인해 보세요.
+2.  **지하수 오염(gw_contam)이 발견된(TRUE) 지점들**의 데이터만 `subset()` 함수를 이용해 추출하세요.
+3.  추출된 데이터에서, **지하수 오염이 발견된 지점들의 평균 납 농도**는 얼마인가요?
+
+---
+---
+
+## 정답 및 해설
+
+### **[정답 1] 오염도 지도 매트릭스 생성**
+
+```{r}
+#| echo: false
+# 1. 벡터 생성
+pb_conc <- c(85, 90, 150, 120, 110, 180, 250, 190, 130, 220, 480, 160, 90, 110, 140, 100)
+
+# 2. 4x4 매트릭스 생성 (byrow=TRUE 옵션으로 행 우선 채우기)
+contamination_map <- matrix(pb_conc, nrow = 4, ncol = 4, byrow = TRUE)
+
+# 3. 행/열 이름 지정
+rownames(contamination_map) <- paste0("X", 1:4)
+colnames(contamination_map) <- paste0("Y", 1:4)
+
+contamination_map
+
+```
+
+### **[정답 2] 매트릭스 데이터 분석**
+
+```{r}
+#| echo: false
+# 1. 특정 좌표의 농도 추출
+contamination_map['X3', 'Y3']
+
+# 2. 최고 오염도 및 기준 초과 지점 수 계산
+max_conc <- max(contamination_map)
+exceeded_count <- sum(contamination_map > 200)
+
+cat(glue::glue("
+- 최고 오염도(Hotspot): {max_conc} mg/kg
+- 기준치 초과 지점 수: {exceeded_count} 곳
+"))
+
+# 3. Y축 라인별 평균 오염도
+colMeans(contamination_map)
+
+```
+### **[정답 3] 추가 정보 데이터프레임 생성**
+
+```{r}
+
+#| echo: false
+# 데이터프레임은 숫자, 문자, 논리형 등 다양한 타입의 열을 가질 수 있습니다.
+site_id <- c("S-03", "S-07", "S-10", "S-11")
+pb_level <- c(150, 250, 220, 480)
+soil_type <- c("Silt", "Clay", "Clay", "Silt")
+gw_contam <- c(FALSE, TRUE, TRUE, TRUE)
+
+hotspot_info <- data.frame(site_id, pb_level, soil_type, gw_contam)
+
+str(hotspot_info)
+
+```
+
+### **[정답 4] 데이터프레임 분석 및 의사결정**
+
+```{r}
+
+#| echo: false
+# 1. 토질 정보 추출 및 빈도 확인
+hotspot_info$soil_type
+table(hotspot_info$soil_type)
+
+# 2. 지하수 오염이 발견된(TRUE) 지점 데이터만 추출
+contaminated_sites <- subset(hotspot_info, gw_contam == TRUE)
+print("지하수 오염 발견 지점:")
+contaminated_sites
+
+# 3. 지하수 오염 지점들의 평균 납 농도 계산
+mean_pb_contam <- mean(contaminated_sites$pb_level)
+cat(glue::glue("\n지하수 오염이 발견된 지점들의 평균 납 농도는 {round(mean_pb_contam, 1)} mg/kg 입니다."))
+
+```
+
